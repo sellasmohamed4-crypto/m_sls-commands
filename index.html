@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M SLS - الطلبيات</title>
+<style>
+body{font-family:Arial;background:#f1f4f8;margin:0;padding:15px;color:#18243a}
+header{background:#173c68;color:white;padding:20px;border-radius:14px;text-align:center}
+.card{background:white;padding:16px;margin-top:14px;border-radius:12px}
+input,select,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-size:16px}
+button{background:#1768aa;color:white;border:0;font-weight:bold}
+.order{border:1px solid #ddd;padding:12px;margin-top:10px;border-radius:9px}
+.total{font-weight:bold;color:#087b48}
+</style>
+</head>
+<body>
+<header>
+<h2>M SLS</h2>
+<p>GESTION DES COMMANDES</p>
+دفتر تسجيل الطلبيات
+</header>
+<div class="card">
+<h3>إضافة طلبية جديدة</h3>
+<input id="shop" placeholder="اسم المحل">
+<input id="phone" placeholder="رقم الهاتف" type="tel">
+<select id="product">
+<option>علب البيتزا</option>
+<option>علب الحلويات</option>
+<option>علب قلب اللوز</option>
+</select>
+<input id="qty" type="number" placeholder="الكمية">
+<input id="price" type="number" placeholder="سعر الوحدة بالدينار">
+<input id="date" type="date">
+<button onclick="addOrder()">حفظ الطلبية</button>
+</div>
+<div class="card">
+<h3>طلبياتي</h3>
+<h3 id="sum" class="total">المجموع: 0 DA</h3>
+<div id="orders"></div>
+</div>
+<script>
+let orders=JSON.parse(localStorage.getItem("msls")||"[]");
+function save(){
+localStorage.setItem("msls",JSON.stringify(orders));
+show();
+}
+function addOrder(){
+let shop=document.getElementById("shop").value.trim();
+let qty=Number(document.getElementById("qty").value);
+let price=Number(document.getElementById("price").value);
+if(!shop||qty<=0||price<=0){
+alert("أدخل اسم المحل والكمية والسعر");
+return;
+}
+orders.push({
+shop,
+phone:document.getElementById("phone").value,
+product:document.getElementById("product").value,
+qty,price,
+date:document.getElementById("date").value,
+status:"جديدة"
+});
+save();
+document.getElementById("shop").value="";
+document.getElementById("phone").value="";
+document.getElementById("qty").value="";
+document.getElementById("price").value="";
+}
+function show(){
+let sum=0;
+document.getElementById("orders").innerHTML="";
+orders.forEach((o,i)=>{
+sum+=o.qty*o.price;
+let div=document.createElement("div");
+div.className="order";
+div.innerHTML="<b>"+o.shop+"</b><br>"+o.product+
+"<br>الكمية: "+o.qty+
+"<br>السعر: "+o.price+" DA"+
+"<br>الإجمالي: "+(o.qty*o.price)+" DA"+
+"<br>الهاتف: "+o.phone+
+"<br>التاريخ: "+o.date;
+let select=document.createElement("select");
+["جديدة","قيد التصنيع","جاهزة","تم التسليم"].forEach(s=>{
+let op=document.createElement("option");
+op.value=s;op.textContent=s;
+select.appendChild(op);
+});
+select.value=o.status;
+select.onchange=()=>{o.status=select.value;save()};
+div.appendChild(select);
+let del=document.createElement("button");
+del.textContent="حذف الطلبية";
+del.onclick=()=>{if(confirm("حذف الطلبية؟")){orders.splice(i,1);save()}};
+div.appendChild(del);
+document.getElementById("orders").appendChild(div);
+});
+document.getElementById("sum").textContent="المجموع: "+sum+" DA";
+}
+show();
+</script>
+</body>
+</html>
